@@ -2,11 +2,11 @@
 
 This plugin serves as a substitute for the patch folder when an existing update is present on official cartridges or other encrypted formats. It also has the benefit of loading decrypted content on 3.65.
 
+To reiterate: this plugin works on both 3.65 and 3.60.
+
 Note: Be wary of using a Vitamin dumped(or similar) eboot, it will be effected by save issues. 
 
 More indepth information on modding by Radziu: https://github.com/TheRadziu/NoNpDRM-modding/wiki
-
-Original rePatch: https://github.com/SilicaAndPina/rePatch
 
 3.65 Confirmed working: https://twitter.com/dots_tb/status/972922611536576512
 
