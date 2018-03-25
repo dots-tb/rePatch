@@ -4,6 +4,8 @@ This plugin serves as a substitute for the patch folder when an existing update 
 
 Note: Be wary of using a Vitamin dumped(or similar) eboot, it will be effected by save issues. 
 
+More indepth information on modding by Radziu: https://github.com/TheRadziu/NoNpDRM-modding/wiki
+
 Original rePatch: https://github.com/SilicaAndPina/rePatch
 
 3.65 Confirmed working: https://twitter.com/dots_tb/status/972922611536576512
