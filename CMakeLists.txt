@@ -31,6 +31,7 @@ target_link_libraries(${PROJECT_NAME}
 	SceIofilemgrForDriver_stub
 	SceDebugForDriver_stub
 	SceSysrootForKernel_stub
+	SceSblACMgrForDriver_stub
 )
 vita_create_self(${PROJECT_NAME}.skprx ${PROJECT_NAME}
   UNSAFE
