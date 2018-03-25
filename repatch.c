@@ -6,7 +6,7 @@ rePatch 1.0 reDux0 -- PATCHING WITH FREEDOM
        with support from @SilicaAndPina and @CelesteBlue123 (especially his """holy grail""")
 
    Testing team:
-    AlternateZero
+    AlternativeZero
     bopz
 	@IcySon55
 	DuckySushi
