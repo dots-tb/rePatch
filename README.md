@@ -23,8 +23,8 @@ Eboot.bin patching added based off: https://github.com/GabyPCgeeK/rePatch
 
 **You should have 3 seperate folders:**
 
-	1. An app folder for the original app
-	2. A patch folder to contain the official update/patch files.
+	1. An app folder for the original app. (minus the ones that are being patched by rePatch)
+	2. A patch folder to contain the official update/patch files. (minus the ones that are being patched by rePatch)
 	3. A rePatch folder which contains a modified version **that were formally contained in app and patch**
 
 **NOTE: rePatch does not act as a patch directory and will not work with decrypted official updates. It modifies files that are or were in encrypted folders.**
