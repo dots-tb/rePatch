@@ -5,6 +5,7 @@ This plugin serves as a substitute for the patch folder when an existing update 
 **To clarify: this plugin works on both 3.65 and 3.60 on NoNpDrm, official cartridges, and officially downloaded games.**
 
 **You should have 3 seperate folders:**
+
 	1. An app folder for the original app
 	2. A patch folder to contain the official update/patch files.
 	3. A rePatch folder which contains a modified version **that were formally contained in app and patch**
