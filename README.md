@@ -4,7 +4,7 @@ This plugin serves as a substitute for the patch folder when an existing update 
 
 **To clarify: this plugin works on both 3.65 and 3.60 on NoNpDrm, official cartridges, and officially downloaded games.**
 
-Note: Be wary of using a Vitamin dumped(or similar) eboot, it will be effected by save issues. 
+Note: Be wary of using a Vitamin dumped(or similar) eboot, it will be affected by save issues. 
 
 
 **More indepth information on modding by Radziu:** https://github.com/TheRadziu/NoNpDRM-modding/wiki
