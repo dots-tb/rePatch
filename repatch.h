@@ -1,5 +1,5 @@
 /* 
-rePatch 1.1 reDux0 -- PATCHING WITH FREEDOM
+rePatch 2.68 reDux0 -- PATCHING WITH FREEDOM
 	Brought to you by SilicaTeam 2.0 --
 	
 		Dev and "reV ur engines" by @dots_tb
