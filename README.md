@@ -27,13 +27,13 @@ Eboot.bin patching added based off: https://github.com/GabyPCgeeK/rePatch
 	2. A patch folder to contain the official update/patch files. (Minus the ones that are being patched by rePatch)
 	3. A rePatch folder which contains modified versions of files **that were formally contained in app and patch**
 
+**NOTE: rePatch does not act as a patch directory and will not work with decrypted official updates. It modifies files that are or were in encrypted folders.**
+	
 # How to use (DLC USE):	
 	
 	1. Within a game's rePatch folder, create a folder named "addcont". Ex: ux0:rePatch/<TITLE ID>/addcont
 	2. Place DECRYPTED content within this folder relating to DLC. This may include: DLC mods (similar to normal rePatch mods) or DLC decrypted/dumped by a pre-taihen dumper or Motoharu's tools.
 	3. Please continue to the following sections pertaining to the subject you want.
-
-**NOTE: rePatch does not act as a patch directory and will not work with decrypted official updates. It modifies files that are or were in encrypted folders.**
 
 # DLC Decrypted Only
 
