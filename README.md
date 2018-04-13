@@ -6,6 +6,7 @@ This plugin serves as a substitute for the patch folder when an existing update 
 
 Note: Be wary of using a Vitamin dumped(or similar) eboot, it will be affected by save issues. 
 
+**NOTE: IF YOUR GAME DLC DOES NOT WORK, TRY RUNNING rePATCH AIDS**
 
 **More in-depth information on modding by Radziu, including newly added DLC:** https://github.com/TheRadziu/NoNpDRM-modding/wiki
 
@@ -53,7 +54,7 @@ Eboot.bin patching added based off: https://github.com/GabyPCgeeK/rePatch
 	2. Place completely decrypted content in corresponding folder: ux0:rePatch/<TITLE ID>/addcont/<DLC ID>
 	3. Run the rePatch Addcont Injection Deficiency Supplement program.
 	NOTE: Modding still works in this mode.
-
+	
 # rePatch Addcont Injection Deficiency Supplement:	
 
 This program is for the maintenance of rePatch. It will allow the DECRYPTED + ENCRYPTED mode to work and will help delete no longer used rePatch game directories.
