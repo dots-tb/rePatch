@@ -8,6 +8,8 @@ Note: Be wary of using a Vitamin dumped(or similar) eboot, it will be affected b
 
 **NOTE: IF YOUR GAME DLC DOES NOT WORK, TRY RUNNING rePATCH AIDS**
 
+**For DLC examples check out: https://github.com/dots-tb/rePatch-reDux0/wiki/DLC-Examples**
+
 **More in-depth information on modding by Radziu, including newly added DLC:** https://github.com/TheRadziu/NoNpDRM-modding/wiki
 
 3.65 Confirmed working: https://twitter.com/dots_tb/status/972922611536576512
