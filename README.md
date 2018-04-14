@@ -14,6 +14,7 @@ Note: Be wary of using a Vitamin dumped(or similar) eboot, it will be affected b
 ## More in-depth information on modding by Radziu: https://github.com/TheRadziu/NoNpDRM-modding/wiki
 This includes newly added DLC and traditional modding.
 
+## Other information:
 3.65 Confirmed working: https://twitter.com/dots_tb/status/972922611536576512
 
 Eboot.bin patching added based off: https://github.com/GabyPCgeeK/rePatch
