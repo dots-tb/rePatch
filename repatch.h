@@ -26,7 +26,7 @@ No thanks to:
 */
 
 #define rePatchFolder "ux0:/rePatch"
-#define addcontFolder rePatchFolder"/%s/addcont"
+#define addcontFolder "ux0:reAddcont/%s"
 
 //https://wiki.henkaku.xyz/vita/SceIofilemgr
 typedef struct io_scheduler_item //size is 0x14 - allocated from SceIoScheduler heap

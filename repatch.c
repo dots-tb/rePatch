@@ -33,8 +33,8 @@ No thanks to:
 #include <taihen.h>
 
 #include "repatch.h"
-#define printf ksceDebugPrintf
-#define HOOKS_NUMBER 5
+//#define printf ksceDebugPrintf
+#define HOOKS_NUMBER 6
 
 static int hooks_uid[HOOKS_NUMBER];
 static tai_hook_ref_t ref_hooks[HOOKS_NUMBER];
@@ -105,6 +105,7 @@ static int sceFiosKernelOverlayResolveSyncForDriver_patched(SceUID pid, int reso
 		}
 	}
 	if(ret < 0) ret = TAI_CONTINUE(int, ref_hooks[0], pid, resolveFlag, pInPath, pOutPath, maxPath);
+	
 	EXIT_SYSCALL(state);
 	return ret;
 }
@@ -115,13 +116,13 @@ static int sceFiosKernelOverlayResolveFolder_patched(SceUID pid, const char *pIn
 	if(!ksceSblACMgrIsShell(0)) {
 		if (memcmp("addco", pInPath, sizeof("addco") - 1)==0) {
 			if(memcmp("addco", mount_info->path, sizeof("addco") - 1) == 0 || memcmp("app0", mount_info->path, sizeof("app0") - 1) == 0) {
-				ret = TAI_CONTINUE(int, ref_hooks[3], pid, pInPath, mount_info, r3, r4, pOutPath);	
+				ret = TAI_CONTINUE(int, ref_hooks[4], pid, pInPath, mount_info, r3, r4, pOutPath);	
 				if(getNewPath(pInPath, pOutPath, pid, PATH_MAX, (DLC_PATH|TITLE_PATH|IS_DIR)))
 					ret = 1;
 			}
 		}
 	}
-	if(ret < 0) ret = TAI_CONTINUE(int, ref_hooks[3], pid, pInPath, mount_info, r3, r4, pOutPath); 
+	if(ret < 0) ret = TAI_CONTINUE(int, ref_hooks[4], pid, pInPath, mount_info, r3, r4, pOutPath); 
 	EXIT_SYSCALL(state);
 	return ret;
 }
@@ -152,14 +153,23 @@ static int sceAppMgrDrmOpenForDriver_patched(drm_opts *drmOpt) {
 	return ret;
 }
 
+static int sceAppMgrDrmCloseForDriver_patched(drm_opts *drmOpt) {
+	int ret = -1, state;
+	ENTER_SYSCALL(state);
+	ret = TAI_CONTINUE(int, ref_hooks[3], drmOpt);
+	if(ret < 0 && !ksceSblACMgrIsShell(0)) 
+		ret = 0;
+	EXIT_SYSCALL(state);
+	return ret;
+}
+
+
 static int io_item_thing_patched(io_scheduler_item *item, int r1) {
 	int ret, state;
 	ENTER_SYSCALL(state);
-	ret = TAI_CONTINUE(int, ref_hooks[4], item, r1);
-	if(ret == 0x80010013 &&item->unk_10 == 0x800) {
+	ret = TAI_CONTINUE(int, ref_hooks[5], item, r1);
+	if(ret == 0x80010013 &&item->unk_10 == 0x800) 
 		item->unk_10 = 1;
-		//ret = TAI_CONTINUE(int, ref_hooks[4], item, r1);
-	}	
 	EXIT_SYSCALL(state);
 	return ret;
 }
@@ -170,12 +180,13 @@ int module_start(SceSize argc, const void *args) {
 	hooks_uid[0] = taiHookFunctionExportForKernel(KERNEL_PID, &ref_hooks[0], "SceFios2Kernel", TAI_ANY_LIBRARY, 0x0F456345, sceFiosKernelOverlayResolveSyncForDriver_patched);
 	hooks_uid[1] = taiHookFunctionImportForKernel(KERNEL_PID, &ref_hooks[1], "SceKernelModulemgr", TAI_ANY_LIBRARY, 0x75192972, ksceIoOpen_patched);
 	hooks_uid[2] = taiHookFunctionExportForKernel(KERNEL_PID, &ref_hooks[2], "SceAppMgr", TAI_ANY_LIBRARY, 0xEA75D157, sceAppMgrDrmOpenForDriver_patched);
+	hooks_uid[3] = taiHookFunctionExportForKernel(KERNEL_PID, &ref_hooks[3], "SceAppMgr", TAI_ANY_LIBRARY, 0x088670A6, sceAppMgrDrmCloseForDriver_patched);
 
 	tai_module_info_t tai_info;
 	tai_info.size = sizeof(tai_module_info_t);
 	taiGetModuleInfoForKernel(KERNEL_PID, "SceFios2Kernel", &tai_info);
 	
-	hooks_uid[3] =  taiHookFunctionOffsetForKernel(KERNEL_PID, &ref_hooks[3], tai_info.modid, 0, 0x1920, 1,  sceFiosKernelOverlayResolveFolder_patched);
+	hooks_uid[4] =  taiHookFunctionOffsetForKernel(KERNEL_PID, &ref_hooks[4], tai_info.modid, 0, 0x1920, 1,  sceFiosKernelOverlayResolveFolder_patched);
 	
 	memset(&tai_info,0,sizeof(tai_module_info_t));
 	tai_info.size = sizeof(tai_module_info_t);
@@ -183,10 +194,10 @@ int module_start(SceSize argc, const void *args) {
 
 	switch(tai_info.module_nid) {
 		case 0xA96ACE9D://3.65
-			hooks_uid[4] =  taiHookFunctionOffsetForKernel(KERNEL_PID, &ref_hooks[4], tai_info.modid, 0, 0xb3d8, 1,  io_item_thing_patched);
+			hooks_uid[5] =  taiHookFunctionOffsetForKernel(KERNEL_PID, &ref_hooks[5], tai_info.modid, 0, 0xb3d8, 1,  io_item_thing_patched);
 			break;
 		case 0x9642948C://3.60
-			hooks_uid[4] =  taiHookFunctionOffsetForKernel(KERNEL_PID, &ref_hooks[4], tai_info.modid, 0, 0xd400, 1, io_item_thing_patched);
+			hooks_uid[5] =  taiHookFunctionOffsetForKernel(KERNEL_PID, &ref_hooks[5], tai_info.modid, 0, 0xd400, 1, io_item_thing_patched);
 			break;
 	}
 	return SCE_KERNEL_START_SUCCESS;
