@@ -37,6 +37,7 @@ Uses code from TheFlow's vitashell (you don't need a link for that)
 
 char g_currentMount[16];
 char g_currentPath[PATH_MAX];
+char g_currentFolder[PATH_MAX];
 
 int pfsMount(const char *path) {
 	char klicensee[0x10];
@@ -228,7 +229,7 @@ enum {
 void handleGame(const char *titleid, int opt) {
 	psvDebugScreenClear(0xFF000000);
 	psvDebugScreenPrintf(".....................................\n");
-	psvDebugScreenPrintf("Reading game: %s\n", titleid);
+	psvDebugScreenPrintf("Reading: %s/%s\n", g_currentFolder, titleid);
 	psvDebugScreenPrintf(".....................................\n");
 	if(opt == DLC_HOUSEWORK) {
 		if(strcmp(titleid,"sce_sys")==0)
@@ -276,8 +277,8 @@ int main(int argc, char **argv) {
 	psvDebugScreenPrintf("Starting unload patch...: %x\n", patch_modid = taiLoadStartKernelModule("ux0:VitaShell/module/patch.skprx", 0, NULL, 0));
 	psvDebugScreenPrintf("Starting VitaShell Kernel Module...: %x\n", kernel_modid = taiLoadStartKernelModule("ux0:VitaShell/module/kernel.skprx", 0, NULL, 0));
 	psvDebugScreenPrintf("Starting VitaShell User Module...: %x\n", user_modid = sceKernelLoadStartModule("ux0:VitaShell/module/user.suprx", 0, NULL, 0, NULL, NULL));
-	
-	int dfd = sceIoDopen("ux0:addcont");
+	strcpy(g_currentFolder, "ux0:addcont");
+	int dfd = sceIoDopen(g_currentFolder);
 	psvDebugScreenPrintf("Reading addcont: %x\n", dfd);
 	if(dfd >= 0) {
 		SceIoDirent dir_stat;
@@ -297,7 +298,8 @@ int main(int argc, char **argv) {
 	psvDebugScreenPrintf("You will be prompted for each detected entry.\n");
 	psvDebugScreenPrintf("......................................................................\n");	
 	if(drawPrompt()){
-		dfd = sceIoDopen(rePatchFolder);
+		strcpy(g_currentFolder, rePatchFolder);
+		dfd = sceIoDopen(g_currentFolder);
 		strcpy(g_currentMount, "ur0:appmeta/");
 		if(dfd >= 0) {
 			SceIoDirent dir_stat;
@@ -305,8 +307,8 @@ int main(int argc, char **argv) {
 				handleGame(dir_stat.d_name, APP_HOUSEWORK);
 		}
 		sceIoDclose(dfd);
-		
-		dfd = sceIoDopen("ux0:reAddcont");
+		strcpy(g_currentFolder, "ux0:reAddcont");
+		dfd = sceIoDopen(g_currentFolder);
 		if(dfd >= 0) {
 			SceIoDirent dir_stat;
 			while(sceIoDread(dfd, &dir_stat)==1) 
