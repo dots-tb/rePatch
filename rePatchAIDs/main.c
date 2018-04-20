@@ -136,7 +136,7 @@ int checkExists(const char *path) {
 int checkIfRepatched(const char *titleid, const char *dlcid) {
 	char currentPath[PATH_MAX];
 	if(!dlcid) 
-	snprintf(currentPath, PATH_MAX, rePatchFolder"/%s", titleid);
+	snprintf(currentPath, PATH_MAX, addcontFolder, titleid);
 	else
 	snprintf(currentPath, PATH_MAX, addcontFolder"/%s", titleid, dlcid);
 	return checkExists(currentPath);
