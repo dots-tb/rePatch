@@ -31,6 +31,7 @@ Uses code from TheFlow's vitashell (you don't need a link for that)
 #include <vitashell_user.h>
 
 #include "graphics.h"
+#include "../repatch.h"
 
 #define TITLE_ID "REPATCH01"
 
@@ -70,7 +71,7 @@ int checkIfDummy(const char *titleid, const char *dlcid) {
 	int ret=sceIoDread(dfd, &dir_stat);
 	sceIoDclose(dfd);
 	if(ret)
-	return 0;
+		return 0;
 	return 1;
 }
 int hasEndSlash(const char *path) {
@@ -115,11 +116,11 @@ int removePath(const char *path) {
 
 		int ret = sceIoRmdir(path);
 		if (ret < 0)
-		return ret;
+			return ret;
 	} else {
 		int ret = sceIoRemove(path);
 		if (ret < 0)
-		return ret;
+			return ret;
 	}
 
 	return 1;
@@ -135,9 +136,9 @@ int checkExists(const char *path) {
 int checkIfRepatched(const char *titleid, const char *dlcid) {
 	char currentPath[PATH_MAX];
 	if(!dlcid) 
-	snprintf(currentPath, PATH_MAX, "ux0:rePatch/%s", titleid);
+	snprintf(currentPath, PATH_MAX, rePatchFolder"/%s", titleid);
 	else
-	snprintf(currentPath, PATH_MAX, "ux0:rePatch/%s/addcont/%s", titleid, dlcid);
+	snprintf(currentPath, PATH_MAX, addcontFolder"/%s", titleid, dlcid);
 	return checkExists(currentPath);
 }
 
@@ -149,7 +150,7 @@ int checkIfEncrypted(const char *titleid) {
 
 int checkIfFolder(const char *titleid, const char *dlcid) {
 	char currentPath[PATH_MAX];
-	snprintf(currentPath, PATH_MAX, "ux0:rePatch/%s/addcont/%s", titleid, dlcid);
+	snprintf(currentPath, PATH_MAX, addcontFolder"/%s", titleid, dlcid);
 	return checkExists(currentPath);
 }
 
@@ -181,7 +182,7 @@ void generateDummyFolders(const char *titleid) {
 	if(checkIfEncrypted(titleid))
 	return;
 	char currentPath[PATH_MAX];
-	snprintf(currentPath, PATH_MAX, "ux0:rePatch/%s/addcont", titleid);
+	snprintf(currentPath, PATH_MAX, addcontFolder, titleid);
 	int dfd = sceIoDopen(currentPath);
 	if(dfd < 0)
 	return;
@@ -193,9 +194,9 @@ void generateDummyFolders(const char *titleid) {
 		psvDebugScreenPrintf("Current Decrypted DLC: %s\n", dir_stat.d_name);
 		snprintf(currentDlc, PATH_MAX, "%s%s", g_currentPath, dir_stat.d_name);
 		if(checkExists(currentDlc))
-		continue;
+			continue;
 		if(!checkIfFolder(titleid, dir_stat.d_name))
-		continue;
+			continue;
 		psvDebugScreenPrintf("Creating dummy folder: %x\n", sceIoMkdir(currentDlc, 0777));
 	}
 	sceIoDclose(dfd);
@@ -215,7 +216,7 @@ int drawPrompt() {
 		sceCtrlPeekBufferPositive(0, &ctrl, 1);
 	}
 	if((ctrl.buttons & SCE_CTRL_CROSS) == (SCE_CTRL_CROSS))
-	return 1;
+		return 1;
 	return 0;
 }
 
@@ -231,7 +232,7 @@ void handleGame(const char *titleid, int opt) {
 	psvDebugScreenPrintf(".....................................\n");
 	if(opt == DLC_HOUSEWORK) {
 		if(strcmp(titleid,"sce_sys")==0)
-		return;
+			return;
 		snprintf(g_currentPath, PATH_MAX, "ux0:addcont/%s/", titleid);
 		int res;
 		psvDebugScreenPrintf("Mounting PFS drive: %x\n", res = pfsMount(g_currentPath));
@@ -252,7 +253,9 @@ void handleGame(const char *titleid, int opt) {
 			psvDebugScreenPrintf("! No app folder detected... REMOVE? !\n");
 			psvDebugScreenPrintf("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
 			if(drawPrompt()) {
-				snprintf(g_currentPath, PATH_MAX, "ux0:rePatch/%s", titleid);
+				snprintf(g_currentPath, PATH_MAX, rePatchFolder"/%s", titleid);
+				removePath(g_currentPath);
+				snprintf(g_currentPath, PATH_MAX, addcontFolder, titleid);
 				removePath(g_currentPath);
 			}
 			sceKernelDelayThread(1500000); 
@@ -280,7 +283,7 @@ int main(int argc, char **argv) {
 		SceIoDirent dir_stat;
 		while(sceIoDread(dfd, &dir_stat)==1) {
 			if(checkIfRepatched(dir_stat.d_name, NULL))
-			handleGame(dir_stat.d_name, DLC_HOUSEWORK);
+				handleGame(dir_stat.d_name, DLC_HOUSEWORK);
 		}
 	}
 	sceIoDclose(dfd);
@@ -294,12 +297,20 @@ int main(int argc, char **argv) {
 	psvDebugScreenPrintf("You will be prompted for each detected entry.\n");
 	psvDebugScreenPrintf("......................................................................\n");	
 	if(drawPrompt()){
-		dfd = sceIoDopen("ux0:rePatch");
-		strcpy(g_currentMount, "ux0:app/");
+		dfd = sceIoDopen(rePatchFolder);
+		strcpy(g_currentMount, "ur0:appmeta/");
 		if(dfd >= 0) {
 			SceIoDirent dir_stat;
 			while(sceIoDread(dfd, &dir_stat)==1) 
-			handleGame(dir_stat.d_name, APP_HOUSEWORK);
+				handleGame(dir_stat.d_name, APP_HOUSEWORK);
+		}
+		sceIoDclose(dfd);
+		
+		dfd = sceIoDopen("ux0:reAddcont");
+		if(dfd >= 0) {
+			SceIoDirent dir_stat;
+			while(sceIoDread(dfd, &dir_stat)==1) 
+				handleGame(dir_stat.d_name, APP_HOUSEWORK);
 		}
 		sceIoDclose(dfd);
 	}
