@@ -73,6 +73,12 @@ static int getNewPath(const char *old_path, char *new_path, SceUID pid, size_t m
 			snprintf(new_path, maxPath, addcontFolder"/%s", titleid, old_path_file);			
 		} else 
 			snprintf(new_path, maxPath, rePatchFolder"/%s/%s", titleid, old_path_file);
+		int i = 0;
+		while(new_path[i] != 0) {
+			if(new_path[i++]=='\\')
+				new_path[i-1]='/';
+		}
+		
 	}
 	if(ksceIoGetstat(new_path, &k_stat)<0) 
 		return 0;
