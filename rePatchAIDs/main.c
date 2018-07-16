@@ -5,7 +5,6 @@ rePatch Addcont Deficiency Injection Supplement -- AIDS WITH FREEDOM
 		Dev and "reV ur engines" by @dots_tb
 		
 	with support from @Nkekev @SilicaAndPina and @CelesteBlue123 (especially his """holy grail""")
-
 Testing team:
 	AlternativeZero	bopz
 	@IcySon55		DuckySushi
@@ -19,7 +18,6 @@ Special thanks to:
 	
 No thanks to:
 	Coderx3(Banana man)
-
 Uses code from TheFlow's vitashell (you don't need a link for that)
 */
 #include <stdio.h>
