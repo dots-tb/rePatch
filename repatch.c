@@ -5,7 +5,6 @@ rePatch 2.68 reDux0 -- PATCHING WITH FREEDOM
 		Dev and "reV ur engines" by @dots_tb
 		
 	with support from @Nkekev @SilicaAndPina and @CelesteBlue123 (especially his """holy grail""")
-
 Testing team:
     AlternativeZero	bopz
 	@IcySon55		DuckySushi
@@ -21,7 +20,6 @@ Special thanks to:
 	
 No thanks to:
 	Coderx3(Banana man)
-
   Based off ioPlus by @dots_tb: https://github.com/CelesteBlue-dev/PSVita-RE-tools/tree/master/ioPlus/
 */
 
@@ -200,10 +198,14 @@ int module_start(SceSize argc, const void *args) {
 
 	switch(tai_info.module_nid) {
 		case 0xA96ACE9D://3.65
+		case 0x90DA33DE://3.68
 			hooks_uid[5] =  taiHookFunctionOffsetForKernel(KERNEL_PID, &ref_hooks[5], tai_info.modid, 0, 0xb3d8, 1,  io_item_thing_patched);
 			break;
 		case 0x9642948C://3.60
 			hooks_uid[5] =  taiHookFunctionOffsetForKernel(KERNEL_PID, &ref_hooks[5], tai_info.modid, 0, 0xd400, 1, io_item_thing_patched);
+			break;
+		default:
+			hooks_uid[5] =  taiHookFunctionOffsetForKernel(KERNEL_PID, &ref_hooks[5], tai_info.modid, 0, 0xb3d8, 1,  io_item_thing_patched);
 			break;
 	}
 	return SCE_KERNEL_START_SUCCESS;
