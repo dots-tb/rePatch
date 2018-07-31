@@ -14,6 +14,9 @@ Note: Be wary of using a Vitamin dumped(or similar) eboot, it will be affected b
 ## More in-depth information on modding by Radziu: https://github.com/TheRadziu/NoNpDRM-modding/wiki
 This includes newly added DLC and traditional modding.
 
+## Debug Build
+Refer to this page for getting rePatch logs and game errors: https://github.com/dots-tb/rePatch-reDux0/wiki/Debug-Info-for-Bugs-and-Modding
+
 ## Other information:
 3.65 Confirmed working: https://twitter.com/dots_tb/status/972922611536576512
 
