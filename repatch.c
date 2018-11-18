@@ -1,28 +1,28 @@
 /* 
-rePatch 2.68 reDux0 -- PATCHING WITH FREEDOM
+rePatch v3.0 reDux0 -- PATCHING WITH FREEDOM
 	Brought to you by SilicaTeam 2.0 --
 	
-		Dev and "reV ur engines" by @dots_tb
+		Dev and "reV ur engines" by @dots_tb @CelesteBlue123 (especially his """holy grail"""  and self_auth info)
 		
-	with support from @Nkekev @SilicaAndPina and @CelesteBlue123 (especially his """holy grail""")
+	with support from @Nkekev @SilicaAndPina
+
 Testing team:
-    AlternativeZero	bopz
+	AlternativeZero	bopz
 	@IcySon55		DuckySushi
 	AnalogMan		Pingu (@mcdarkjedii) 
 	amadeus			jeff7360
 	Radziu (@AluProductions)
+	@RealYoti		@froid_san
+	waterflame
 	
 Special thanks to:
 	VitaPiracy, especially Radziu for shilling it
 	The translation community for being supportive of rePatch and its development
 	Motoharu for his RE work on the wiki
 	TheFlow for creating a need for this plugin
-	
-No thanks to:
-	Coderx3(Banana man)
-  Based off ioPlus by @dots_tb: https://github.com/CelesteBlue-dev/PSVita-RE-tools/tree/master/ioPlus/
 */
 
+#include <unistd.h>
 #include <stdio.h>
 #include <stdarg.h>
 #include <string.h>
@@ -31,142 +31,166 @@ No thanks to:
 #include <taihen.h>
 
 #include "repatch.h"
-//#define printf ksceDebugPrintf
-#define HOOKS_NUMBER 6
+#include "self.h"
+#define printf ksceDebugPrintf
+#define HOOKS_NUMBER 7
 
 static int hooks_uid[HOOKS_NUMBER];
 static tai_hook_ref_t ref_hooks[HOOKS_NUMBER];
-static char newPath[PATH_MAX];
 
-static int getNewPath(const char *old_path, char *new_path, SceUID pid, size_t maxPath, int opt) {
-	char *old_path_file = (char *)old_path;
+static mount_point_overlay addcont_overlay;
+static mount_point_overlay repatch_overlay;
+
+int (*_sceFiosKernelOverlayRemoveForProcessForDriver)(SceUID pid, uint32_t id);
+
+int checkFile(const char *filename) {
 	SceIoStat k_stat;
-	if(!(opt & NO_DEVICE)) {
-		old_path_file = strchr(old_path_file, ':') + 1;
-		if(old_path_file[0] == '/')
-			old_path_file++;
-	}
-	if(opt & TRUNC_PATH) {
-		if((old_path_file = strchr(old_path_file, '/'))==NULL) 
-			return 0;
-		snprintf(new_path, maxPath, rePatchFolder"%s", old_path_file);
-	} else if(opt & TITLE_PATH) {
-		char titleid[32];
-		if(ksceKernelGetProcessTitleId(pid, titleid, sizeof(titleid))<0)
-			return 0;
-		if(opt & DLC_PATH) {
-			if((opt & IS_DIR) && new_path[0] != 0 && memcmp("PD", new_path, sizeof("PD") - 1) == 0) {
-				if(old_path_file[0] == 0 || (opt & NO_DUMBY))
-					return 0;
-				int dfd = ksceIoDopen(new_path);
-				SceIoDirent dir;
-				memset(&dir, 0, sizeof(dir));
-				if(dfd >= 0) {
-					int ret = ksceIoDread(dfd, &dir);
-					ksceIoDclose(dfd);
-					if(ret)
-						return 0;
-				}										
-			}
-			snprintf(new_path, maxPath, addcontFolder"/%s", titleid, old_path_file);			
-		} else 
-			snprintf(new_path, maxPath, rePatchFolder"/%s/%s", titleid, old_path_file);
-		int i = 0;
-		while(new_path[i] != 0) {
-			if(new_path[i++]=='\\')
-				new_path[i-1]='/';
-		}
-		
-	}
-	if(ksceIoGetstat(new_path, &k_stat)<0) 
-		return 0;
-	return 1;
+	return !ksceIoGetstat(filename, &k_stat);
 }
 
-static char *confirmPatch(const char *filename) { //For future support of future things.
-	char *old_path_file = strchr(filename, ':') + 1;
-	if(old_path_file[0] == '/')
-		old_path_file++;
-	if(memcmp(old_path_file,"patch",sizeof("patch")-1)==0
-		||memcmp(old_path_file,"app",sizeof("app")-1)==0) 
-			return old_path_file;
-	return 0;
+void stripDevice(const char *inPath, char *outPath) {
+	char *old_path_file =  strchr(inPath, ':') + 1;
+	old_path_file = (old_path_file[0] == '/') ? strchr(old_path_file + 1, '/') + 1 : strchr(old_path_file, '/') + 1;
+	snprintf(outPath, PATH_MAX, rePatchFolder"/%s", old_path_file);
 }
 
-static int sceFiosKernelOverlayResolveSyncForDriver_patched(SceUID pid, int resolveFlag, const char *pInPath, char *pOutPath, size_t maxPath) {
+static char temp_path[PATH_MAX];
+static int resolveFolder(char *filepath) {
+	for(int i = 0; i < DEVICES_AMT; i++) {
+		snprintf(temp_path, sizeof(temp_path), "%s/%s", DEVICES[i], filepath);
+		if(checkFile(temp_path))
+			return (strncpy(filepath, temp_path, 292) != NULL);
+	}
+	return checkFile(filepath);
+}
+
+static char manu_patch[PATH_MAX];
+static int overlayHandler(uint32_t pid, mount_point_overlay *overlay_old, mount_point_overlay *overlay_new, int opt) {
+	if(overlay_new->PID == pid && overlay_new->mountId > 0)
+		_sceFiosKernelOverlayRemoveForProcessForDriver(pid, overlay_new->mountId);
+	overlay_new->mountId = 0;
+	overlay_new->PID = pid;
+	overlay_new->order = 0x85;
+	overlay_new->type = 1;
+	if(opt & AIDS_PATH)
+		strncpy(overlay_new->dst, "addcont0:", sizeof(overlay_new->dst));
+	else
+		strncpy(overlay_new->dst, overlay_old->src, sizeof(overlay_new->dst));
+	char titleid[32];
+	if(ksceKernelGetProcessTitleId(pid, titleid, sizeof(titleid))==0) {
+		if(opt & APP_PATH)
+			snprintf(overlay_new->src, sizeof(overlay_new->src), rePatchFolder"/%s", titleid);
+		else if((opt & DLC_PATH) || (opt & AIDS_PATH))
+			snprintf(overlay_new->src, sizeof(overlay_new->src), addcontFolder"/%s", titleid);
+		else if((opt & MANU_PATH) && (strncmp("NPXS10027", titleid, sizeof("NPXS10027"))==0 || strncmp("main", titleid, sizeof("main"))==0)) 
+			strncpy(overlay_new->src, manu_patch, sizeof(manu_patch));
+	}
+	int ret = resolveFolder(overlay_new->src);
+	overlay_new->dst_len = strnlen(overlay_new->dst, sizeof(overlay_new->dst));
+	overlay_new->src_len = strnlen(overlay_new->src, sizeof(overlay_new->src));
+	return ret;
+}
+
+static int sceFiosKernelOverlayAddForProcessForDriver_patched(uint32_t pid, mount_point_overlay *overlay, uint32_t *outID) {
 	int ret = -1, state;
+	uint32_t repatch_outID =0;
 	ENTER_SYSCALL(state);
-	if(!ksceSblACMgrIsShell(0)) {
-		if (memcmp("app0:", pInPath, sizeof("app0:") - 1)==0 && getNewPath(pInPath, pOutPath, pid, maxPath, (TITLE_PATH)))
-			ret = 0;
-		else if (memcmp("addco", pInPath, sizeof("addco") - 1)==0) {
-			if(strchr(pInPath + sizeof("addcont0:/") + ADDCONT_THRES, '/') == NULL) {
-				ret = TAI_CONTINUE(int, ref_hooks[0], pid, resolveFlag, pInPath, pOutPath, maxPath);
-				if(getNewPath(pInPath, pOutPath, pid, maxPath, (DLC_PATH|TITLE_PATH|IS_DIR|NO_DUMBY)))
-					ret = 0;
-			} else if(getNewPath(pInPath, pOutPath, pid, maxPath, (DLC_PATH|TITLE_PATH)))
-				ret = 0;
+	if(ksceSblACMgrIsGameProgram(pid)) {
+		if(strncmp(overlay->dst, "app0:", sizeof("app0:")) == 0) {
+			if(overlayHandler(pid, overlay, &repatch_overlay, APP_PATH))
+			repatch_overlay.mountId = TAI_CONTINUE(int, ref_hooks[0], pid, &repatch_overlay, &repatch_outID);
+				repatch_overlay.mountId =  repatch_outID;
+			repatch_outID = 0;
+			if(overlayHandler(pid, NULL, &addcont_overlay, AIDS_PATH))
+				addcont_overlay.mountId =  TAI_CONTINUE(int, ref_hooks[0], pid, &addcont_overlay, &repatch_outID);
+			addcont_overlay.mountId = repatch_outID;
+		} else if(strncmp(overlay->dst, "addcont0:", sizeof("addcont0:")) == 0 && overlayHandler(pid, overlay, &addcont_overlay, DLC_PATH)) {
+			addcont_overlay.mountId = TAI_CONTINUE(int, ref_hooks[0], pid, &addcont_overlay, &repatch_outID);
+			addcont_overlay.mountId =  repatch_outID;
 		}
+	}				
+	if(strncmp(overlay->dst, repatch_overlay.dst, sizeof(repatch_overlay.dst)) == 0 && overlayHandler(pid, overlay, &repatch_overlay, PATCH_PATH)) {
+			repatch_overlay.mountId = TAI_CONTINUE(int, ref_hooks[0], pid, &repatch_overlay, &repatch_outID);
+			repatch_overlay.mountId =  repatch_outID;	
+	} else if(strncmp("gp", overlay->dst, sizeof("gp") - 1) == 0 && overlayHandler(pid, overlay, &repatch_overlay, MANU_PATH)) {
+		TAI_CONTINUE(int, ref_hooks[0], pid, &repatch_overlay, &repatch_outID);
+		repatch_overlay.mountId =  repatch_outID;
 	}
-	if(ret < 0) ret = TAI_CONTINUE(int, ref_hooks[0], pid, resolveFlag, pInPath, pOutPath, maxPath);
-	
+	ret = TAI_CONTINUE(int, ref_hooks[0], pid, overlay, outID);
 	EXIT_SYSCALL(state);
 	return ret;
 }
 
-static int sceFiosKernelOverlayResolveFolder_patched(SceUID pid, const char *pInPath, mount_point_overlay *mount_info, int r3, int r4, char *pOutPath) {
+static char repatch_path[PATH_MAX];
+static SceSelfAuthInfo self_auth_info;
+
+static int ksceSblAuthMgrAuthHeaderForKernel_patched(int ctx, char *header, int header_size, SceSblSmCommContext130 *context_130){
 	int ret = -1, state;
 	ENTER_SYSCALL(state);
-	if(!ksceSblACMgrIsShell(0)) {
-		if (memcmp("addco", pInPath, sizeof("addco") - 1)==0) {
-			if(memcmp("addco", mount_info->path, sizeof("addco") - 1) == 0 || memcmp("app0", mount_info->path, sizeof("app0") - 1) == 0) {
-				ret = TAI_CONTINUE(int, ref_hooks[4], pid, pInPath, mount_info, r3, r4, pOutPath);	
-				if(getNewPath(pInPath, pOutPath, pid, PATH_MAX, (DLC_PATH|TITLE_PATH|IS_DIR)))
-					ret = 1;
-			}
-		}
+	ret = TAI_CONTINUE(int, ref_hooks[6], ctx, header, header_size, context_130);
+	SCE_header *shdr = (SCE_header *)header;
+	SCE_appinfo *appinfo = (SCE_appinfo *)(header + shdr->appinfo_offset);
+	if(context_130->self_auth_info_caller.program_authority_id  == self_auth_info.program_authority_id || appinfo->authid == self_auth_info.program_authority_id) {
+		memcpy((char*)(context_130->self_auth_info.capability), (char*)&self_auth_info + 0x10, 0x40);
+		if (context_130->self_auth_info.capability[0] == 0x10) 
+			((char *)&context_130->self_auth_info.program_authority_id)[7] = 0x2F;
 	}
-	if(ret < 0) ret = TAI_CONTINUE(int, ref_hooks[4], pid, pInPath, mount_info, r3, r4, pOutPath); 
 	EXIT_SYSCALL(state);
 	return ret;
 }
-
+static char eboot_path[PATH_MAX];
 static int ksceIoOpen_patched(const char *filename, int flag, SceIoMode mode) {
 	int ret = -1, state;
 	ENTER_SYSCALL(state);
-	if((flag & SCE_O_WRONLY) != SCE_O_WRONLY && ksceSblACMgrIsShell(0)) {
-		if(confirmPatch(filename) && strstr(filename, "/eboot.bin")!=NULL) {
-			if(getNewPath(filename, newPath, 0, sizeof(newPath), (TRUNC_PATH)))
-				ret = TAI_CONTINUE(int, ref_hooks[1], newPath, flag, mode);
-		}
-	} 
+	if ((flag & SCE_O_WRONLY) != SCE_O_WRONLY && ksceSblACMgrIsShell(0) && (strncmp(filename, "ux0:", sizeof("ux0:") -1) == 0) && strstr(filename, "/eboot.bin") != NULL){
+			stripDevice(filename, eboot_path);
+			resolveFolder(eboot_path);
+			if((ret = TAI_CONTINUE(int, ref_hooks[1], eboot_path, flag, mode))>0) {
+				strncpy(repatch_path, eboot_path, sizeof(repatch_path));
+				char *end_path = strstr(repatch_path, "eboot.bin");
+				*end_path = 0;
+				snprintf(eboot_path, PATH_MAX, "%sself_auth.bin", repatch_path);
+				SceUID fd = ksceIoOpen(eboot_path, SCE_O_RDONLY, 0);
+				if (fd >= 0) {
+					if (ksceIoRead(fd, &self_auth_info, 0x90) != 0x90)
+						memset(&self_auth_info, 0, sizeof(self_auth_info));
+					ksceIoClose(fd);
+				}
+				if (hooks_uid[6] <= 0)
+					hooks_uid[6] = taiHookFunctionImportForKernel(KERNEL_PID, &ref_hooks[6], "SceKernelModulemgr", TAI_ANY_LIBRARY, 0xF3411881, ksceSblAuthMgrAuthHeaderForKernel_patched);
+			}		
+	}
 	if(ret <= 0) ret = TAI_CONTINUE(int, ref_hooks[1], filename, flag, mode);
 	EXIT_SYSCALL(state);
 	return ret;
 }
 
-static int sceAppMgrDrmOpenForDriver_patched(drm_opts *drmOpt) {
-	int ret = -1, state;
-	ENTER_SYSCALL(state);
-	ret = TAI_CONTINUE(int, ref_hooks[2], drmOpt);
-	if(ret < 0 && !ksceSblACMgrIsShell(0)) {
-		if(getNewPath(drmOpt->adcont_id, newPath, ksceKernelGetProcessId(), sizeof(newPath), (DLC_PATH|TITLE_PATH|NO_DEVICE))) 
-			ret = 0;
-	}
-	EXIT_SYSCALL(state);
-	return ret;
+static int confirmDlc(char *filepath, const char *adcont_id) {
+	snprintf(filepath, PATH_MAX, "%s/%s", addcont_overlay.src, adcont_id);
+	return checkFile(filepath);
 }
 
-static int sceAppMgrDrmCloseForDriver_patched(drm_opts *drmOpt) {
+static char dlc_path[PATH_MAX];
+static int sceAppMgrDrmOpenForDriver_patched(drm_opts *drmOpt, int r2) {
 	int ret = -1, state;
 	ENTER_SYSCALL(state);
-	ret = TAI_CONTINUE(int, ref_hooks[3], drmOpt);
+	ret = TAI_CONTINUE(int, ref_hooks[2], drmOpt, r2);
 	if(ret < 0 && !ksceSblACMgrIsShell(0)) 
-		ret = 0;
+		ret = confirmDlc(dlc_path, drmOpt->adcont_id) ? 0 : ret;
 	EXIT_SYSCALL(state);
 	return ret;
 }
 
+static char dlc_path2[PATH_MAX];
+static int sceAppMgrDrmCloseForDriver_patched(drm_opts *drmOpt, int r2) {
+	int ret = -1, state;
+	ENTER_SYSCALL(state);
+	ret = TAI_CONTINUE(int, ref_hooks[3], drmOpt, r2);
+	if(ret < 0 && !ksceSblACMgrIsShell(0))
+		ret = confirmDlc(dlc_path2, drmOpt->adcont_id) ? 0 : ret;
+	EXIT_SYSCALL(state);
+	return ret;
+}
 
 static int io_item_thing_patched(io_scheduler_item *item, int r1) {
 	int ret, state;
@@ -178,19 +202,27 @@ static int io_item_thing_patched(io_scheduler_item *item, int r1) {
 	return ret;
 }
 
+static int ksceAppMgrGameDataMount_patched(char *input, int r2, int r3, char *outpath) {
+	int ret = -1, state;
+	ENTER_SYSCALL(state);
+	stripDevice(input, manu_patch);
+	ret = TAI_CONTINUE(int, ref_hooks[4], input, r2, r3, outpath);
+	EXIT_SYSCALL(state);
+	return ret;
+}
+
 void _start() __attribute__ ((weak, alias ("module_start")));
 
 int module_start(SceSize argc, const void *args) {
-	hooks_uid[0] = taiHookFunctionExportForKernel(KERNEL_PID, &ref_hooks[0], "SceFios2Kernel", TAI_ANY_LIBRARY, 0x0F456345, sceFiosKernelOverlayResolveSyncForDriver_patched);
+	module_get_export_func(KERNEL_PID, "SceFios2Kernel", TAI_ANY_LIBRARY, 0x23247EFB, &_sceFiosKernelOverlayRemoveForProcessForDriver);
+	
+	hooks_uid[0] = taiHookFunctionExportForKernel(KERNEL_PID, &ref_hooks[0], "SceFios2Kernel", TAI_ANY_LIBRARY, 0x17E65A1C, sceFiosKernelOverlayAddForProcessForDriver_patched);
 	hooks_uid[1] = taiHookFunctionImportForKernel(KERNEL_PID, &ref_hooks[1], "SceKernelModulemgr", TAI_ANY_LIBRARY, 0x75192972, ksceIoOpen_patched);
 	hooks_uid[2] = taiHookFunctionExportForKernel(KERNEL_PID, &ref_hooks[2], "SceAppMgr", TAI_ANY_LIBRARY, 0xEA75D157, sceAppMgrDrmOpenForDriver_patched);
 	hooks_uid[3] = taiHookFunctionExportForKernel(KERNEL_PID, &ref_hooks[3], "SceAppMgr", TAI_ANY_LIBRARY, 0x088670A6, sceAppMgrDrmCloseForDriver_patched);
+	hooks_uid[4] = taiHookFunctionExportForKernel(KERNEL_PID, &ref_hooks[4], "SceAppMgr", TAI_ANY_LIBRARY, 0xCE356B2D, ksceAppMgrGameDataMount_patched);
 
 	tai_module_info_t tai_info;
-	tai_info.size = sizeof(tai_module_info_t);
-	taiGetModuleInfoForKernel(KERNEL_PID, "SceFios2Kernel", &tai_info);
-	
-	hooks_uid[4] =  taiHookFunctionOffsetForKernel(KERNEL_PID, &ref_hooks[4], tai_info.modid, 0, 0x1920, 1,  sceFiosKernelOverlayResolveFolder_patched);
 	
 	memset(&tai_info,0,sizeof(tai_module_info_t));
 	tai_info.size = sizeof(tai_module_info_t);
