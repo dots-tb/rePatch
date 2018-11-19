@@ -13,7 +13,7 @@ Testing team:
 	amadeus			jeff7360
 	Radziu (@AluProductions)
 	@RealYoti		@froid_san
-	waterflame
+	@waterflame321
 	
 Special thanks to:
 	VitaPiracy, especially Radziu for shilling it
