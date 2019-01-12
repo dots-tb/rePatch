@@ -132,8 +132,6 @@ static int ksceSblAuthMgrAuthHeaderForKernel_patched(int ctx, char *header, int 
 	SCE_appinfo *appinfo = (SCE_appinfo *)(header + shdr->appinfo_offset);
 	if(context_130->self_auth_info_caller.program_authority_id  == self_auth_info.program_authority_id || appinfo->authid == self_auth_info.program_authority_id) {
 		memcpy((char*)(context_130->self_auth_info.capability), (char*)&self_auth_info + 0x10, 0x40);
-		if (context_130->self_auth_info.capability[0] == 0x10) 
-			((char *)&context_130->self_auth_info.program_authority_id)[7];
 	}
 	EXIT_SYSCALL(state);
 	return ret;
