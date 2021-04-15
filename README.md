@@ -1,6 +1,6 @@
 # rePatch reLoaded:
 
-Modification of rePatch adding Homebrew app0: patching and ux0:/data migration to other partitions.
+Modification of rePatch adding Homebrew app0: patching and ux0:/data migration to other partitions, allowing you to play games with data on different storage.
 
 This plugin serves as a substitute for the patch folder when an existing update is present on official cartridges or other encrypted formats. It also has the benefit of loading decrypted content on 3.60+.
 
