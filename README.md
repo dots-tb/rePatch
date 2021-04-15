@@ -10,6 +10,7 @@ Note: Be wary of using a Vitamin dumped(or similar) eboot, it will be affected b
 
 ## INSTALL INSTRUCTIONS: https://github.com/dots-tb/rePatch-reDux0/wiki/
 **For DLC examples check out: https://github.com/dots-tb/rePatch-reDux0/wiki/DLC-Examples**
+**For the new ux0:data migration examples, check : https://github.com/SonicMastr/rePatch-reLoaded/wiki**
 
 ## More in-depth information on modding by Radziu: https://github.com/TheRadziu/NoNpDRM-modding/wiki
 This includes newly added DLC and traditional modding.
