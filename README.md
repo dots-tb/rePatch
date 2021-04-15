@@ -1,4 +1,6 @@
-# rePatch reDux0:
+# rePatch reLoaded:
+
+Modification of rePatch adding Homebrew app0: patching and ux0:/data migration to other partitions.
 
 This plugin serves as a substitute for the patch folder when an existing update is present on official cartridges or other encrypted formats. It also has the benefit of loading decrypted content on 3.60+.
 
@@ -18,6 +20,8 @@ This includes newly added DLC and traditional modding.
 Eboot.bin patching added based off: https://github.com/GabyPCgeeK/rePatch
 
 Developed by @dots_tb & @CelesteBlue123 SilicaAndPina
+Homebrew Support and Data patches by @BigBlackOniiSan
 
 https://twitter.com/CelesteBlue123
 https://twitter.com/dots_tb
+https://twitter.com/BigBlackOniiSan
