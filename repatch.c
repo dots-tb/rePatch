@@ -100,11 +100,11 @@ static int sceFiosKernelOverlayAddForProcessForDriver_patched(uint32_t pid, moun
 	int ret = -1;
 	uint32_t repatch_outID =0;
 
-	if(!sceSblACMgrIsSystemProgram(pid)) { // Damn. I just enabled most homebrew support with FIOS2
+	if(!sceSblACMgrIsRootProgram(pid)) { // Damn. I just enabled most homebrew support with FIOS2
 		if(strncmp(overlay->dst, "app0:", sizeof("app0:")) == 0) {
 			if(overlayHandler(pid, overlay, &repatch_overlay, APP_PATH))
-			repatch_overlay.mountId = TAI_CONTINUE(int, ref_hooks[0], pid, &repatch_overlay, &repatch_outID);
-				repatch_overlay.mountId =  repatch_outID;
+				repatch_overlay.mountId = TAI_CONTINUE(int, ref_hooks[0], pid, &repatch_overlay, &repatch_outID);
+			repatch_overlay.mountId =  repatch_outID;
 			repatch_outID = 0;
 			if(overlayHandler(pid, NULL, &addcont_overlay, AIDS_PATH))
 				addcont_overlay.mountId =  TAI_CONTINUE(int, ref_hooks[0], pid, &addcont_overlay, &repatch_outID);
@@ -130,7 +130,7 @@ static char data_patch[PATH_MAX];
 static int sceFiosKernelOverlayResolveSyncForDriver_patched(SceUID pid, int resolveFlag, const char *pInPath, char *pOutPath, size_t maxPath) {
 	int ret, state;
 	ret = TAI_CONTINUE(int, ref_hooks[7], pid, resolveFlag, pInPath, pOutPath, maxPath);
-	if(!sceSblACMgrIsSystemProgram(pid)) { // Damn. I just enabled most homebrew support with FIOS2
+	if(!sceSblACMgrIsRootProgram(pid)) { // Damn. I just enabled most homebrew support with FIOS2
 		if(strstr(pOutPath, "ux0:/data")) {
 			stripReplaceData(pOutPath, data_patch);
 			ret = resolveFolder(data_patch);
