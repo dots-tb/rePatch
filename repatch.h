@@ -63,7 +63,7 @@ typedef struct mount_point_overlay{
 #define MANU_PATH  0x08
 #define APP_PATH   0x10
 
-#define UNSAFE 		0x2F00000000000001ULL 	// For later
+#define UNSAFE		0x2F00000000000001ULL 	// For later
 #define SAFE 		0x2F00000000000002ULL
 #define SUPERSAFE	0x2F00000000000003ULL
 
