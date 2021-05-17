@@ -1,4 +1,4 @@
-Module: repatch_ex major_version: 1 minor_version: 1
+Module: repatch_ex major_version: 1 minor_version: 2
 sceModuleInfo_type: 6
 module_function: module_start localname: module_start
 module_function: module_stop localname: module_stop

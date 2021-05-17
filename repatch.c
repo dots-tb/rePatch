@@ -32,7 +32,7 @@ Special thanks to:
 #include "repatch.h"
 #include "self.h"
 #define printf sceDebugPrintf
-#define HOOKS_NUMBER 8
+#define HOOKS_NUMBER 9
 
 static int hooks_uid[HOOKS_NUMBER];
 static tai_hook_ref_t ref_hooks[HOOKS_NUMBER];
@@ -54,8 +54,8 @@ void stripDevice(const char *inPath, char *outPath) {
 }
 
 void stripReplaceData(const char *inPath, char *outPath) {
-	char *old_path_file =  strchr(inPath, ':') + 1;
-	old_path_file = old_path_file + 6;
+	char *old_path_file = strchr(inPath, ':') + 1;
+	old_path_file = (old_path_file[0] == '/') ? strchr(old_path_file + 1, '/') + 1 : strchr(old_path_file, '/') + 1;
 	snprintf(outPath, PATH_MAX, dataFolder"/%s", old_path_file);
 }
 
@@ -97,12 +97,11 @@ static int overlayHandler(uint32_t pid, mount_point_overlay *overlay_old, mount_
 }
 
 static int sceFiosKernelOverlayAddForProcessForDriver_patched(uint32_t pid, mount_point_overlay *overlay, uint32_t *outID) {
-	int ret = -1;
 	uint32_t repatch_outID = 0;
 	int64_t authid;
 
 	sceSblACMgrGetProcessProgramAuthId(pid, &authid);
-	if(!sceSblACMgrIsSystemProgram(pid) || (authid == 0)) { // Damn. I just enabled most homebrew support with FIOS2
+	if(!sceSblACMgrIsSystemProgram(pid) || sceSblACMgrIsGameProgram(pid) || (authid == 0)) { // Damn. I just enabled most homebrew support with FIOS2
 		if(strncmp(overlay->dst, "app0:", sizeof("app0:")) == 0) {
 			if(overlayHandler(pid, overlay, &repatch_overlay, APP_PATH))
 				repatch_overlay.mountId = TAI_CONTINUE(int, ref_hooks[0], pid, &repatch_overlay, &repatch_outID);
@@ -123,9 +122,8 @@ static int sceFiosKernelOverlayAddForProcessForDriver_patched(uint32_t pid, moun
 		TAI_CONTINUE(int, ref_hooks[0], pid, &repatch_overlay, &repatch_outID);
 		repatch_overlay.mountId =  repatch_outID;
 	}
-	ret = TAI_CONTINUE(int, ref_hooks[0], pid, overlay, outID);
 
-	return ret;
+	return TAI_CONTINUE(int, ref_hooks[0], pid, overlay, outID);
 }
 
 static char data_patch[PATH_MAX];
@@ -134,7 +132,7 @@ static int sceFiosKernelOverlayResolveSyncForDriver_patched(SceUID pid, int reso
 	int64_t authid;
 	ret = TAI_CONTINUE(int, ref_hooks[7], pid, resolveFlag, pInPath, pOutPath, maxPath);
 	sceSblACMgrGetProcessProgramAuthId(pid, &authid);
-	if(!sceSblACMgrIsSystemProgram(pid) || (authid == 0)) { // Damn. I just enabled most homebrew support with FIOS2
+	if(!sceSblACMgrIsSystemProgram(pid) || sceSblACMgrIsGameProgram(pid) || (authid == 0)) { // Damn. I just enabled most homebrew support with FIOS2
 		if(strstr(pOutPath, "ux0:/data")) {
 			stripReplaceData(pOutPath, data_patch);
 			ret = resolveFolder(data_patch);
@@ -143,6 +141,22 @@ static int sceFiosKernelOverlayResolveSyncForDriver_patched(SceUID pid, int reso
 		}
 	}
 	return ret;
+}
+
+static sceFiosKernelOverlayDHOpenSync_patched(int *handle, /** Gonna Write to it anyway **/ const char *path, SceByte a3, SceByte a4) {
+	int64_t authid;
+	
+	SceUID pid = sceKernelGetProcessIdFromTLS();
+	sceSblACMgrGetProcessProgramAuthId(pid, &authid);
+	if(!sceSblACMgrIsSystemProgram(pid) || sceSblACMgrIsGameProgram(pid) || (authid == 0)) { // Yeah yeah. Enabled Homebrew support
+		if(strstr(path, "ux0:data") || strstr(path, "ux0:/data")) { // Absolute Jank
+			stripReplaceData(path, data_patch);
+			if (resolveFolder(data_patch))
+				strncpy(path, data_patch, PATH_MAX);
+		}
+	}
+
+	return TAI_CONTINUE(int, ref_hooks[8], handle, path, a3, a4);;
 }
 
 static char repatch_path[PATH_MAX];
@@ -241,6 +255,7 @@ int module_start(SceSize argc, const void *args) {
 	hooks_uid[3] = taiHookFunctionExportForKernel(KERNEL_PID, &ref_hooks[3], "SceAppMgr", TAI_ANY_LIBRARY, 0x088670A6, sceAppMgrDrmCloseForDriver_patched);
 	hooks_uid[4] = taiHookFunctionExportForKernel(KERNEL_PID, &ref_hooks[4], "SceAppMgr", TAI_ANY_LIBRARY, 0xCE356B2D, sceAppMgrGameDataMount_patched);
 	hooks_uid[7] = taiHookFunctionExportForKernel(KERNEL_PID, &ref_hooks[7], "SceFios2Kernel", TAI_ANY_LIBRARY, 0x0F456345, sceFiosKernelOverlayResolveSyncForDriver_patched);
+	hooks_uid[8] = taiHookFunctionExportForKernel(KERNEL_PID, &ref_hooks[8], "SceFios2Kernel", TAI_ANY_LIBRARY, 0x3B329E86, sceFiosKernelOverlayDHOpenSync_patched);
 
 	tai_module_info_t tai_info;
 
