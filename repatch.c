@@ -285,8 +285,8 @@ int module_start(SceSize argc, const void *args) {
 		case 0xF7794A6C://3.73
 			hooks_uid[5] =  taiHookFunctionOffsetForKernel(KERNEL_PID, &ref_hooks[5], tai_info.modid, 0, 0xb830, 1,  io_item_thing_patched);
 			break;
-		default:
-			hooks_uid[5] =  taiHookFunctionOffsetForKernel(KERNEL_PID, &ref_hooks[5], tai_info.modid, 0, 0xb830, 1,  io_item_thing_patched);
+		default://Keep this 3.68 offset for now
+			hooks_uid[5] =  taiHookFunctionOffsetForKernel(KERNEL_PID, &ref_hooks[5], tai_info.modid, 0, 0xb3d8, 1,  io_item_thing_patched);
 			break;
 	}
 	return SCE_KERNEL_START_SUCCESS;
