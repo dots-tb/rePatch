@@ -227,15 +227,29 @@ int module_start(SceSize argc, const void *args) {
 	taiGetModuleInfoForKernel(KERNEL_PID, "SceIofilemgr", &tai_info);
 
 	switch(tai_info.module_nid) {
-		case 0xA96ACE9D://3.65
-		case 0x90DA33DE://3.68
-			hooks_uid[5] =  taiHookFunctionOffsetForKernel(KERNEL_PID, &ref_hooks[5], tai_info.modid, 0, 0xb3d8, 1,  io_item_thing_patched);
-			break;
+		case 0x7A1DBDE6://3.55
+		case 0xEF58597E://3.57
 		case 0x9642948C://3.60
 			hooks_uid[5] =  taiHookFunctionOffsetForKernel(KERNEL_PID, &ref_hooks[5], tai_info.modid, 0, 0xd400, 1, io_item_thing_patched);
 			break;
-		default:
+		case 0xE923F19C://3.61
+			hooks_uid[5] =  taiHookFunctionOffsetForKernel(KERNEL_PID, &ref_hooks[5], tai_info.modid, 0, 0xd414, 1, io_item_thing_patched);
+			break;
+		case 0x5FC2B87D://3.63
+		case 0xA96ACE9D://3.65
+		case 0x3347A95F://3.67
+		case 0x90DA33DE://3.68
 			hooks_uid[5] =  taiHookFunctionOffsetForKernel(KERNEL_PID, &ref_hooks[5], tai_info.modid, 0, 0xb3d8, 1,  io_item_thing_patched);
+			break;
+		case 0xF16E72C7://3.69
+		case 0x81A49C2B://3.70
+		case 0xF2D59083://3.71
+		case 0x9C16D40A://3.72
+		case 0xF7794A6C://3.73
+			hooks_uid[5] =  taiHookFunctionOffsetForKernel(KERNEL_PID, &ref_hooks[5], tai_info.modid, 0, 0xb830, 1,  io_item_thing_patched);
+			break;
+		default:
+			hooks_uid[5] =  taiHookFunctionOffsetForKernel(KERNEL_PID, &ref_hooks[5], tai_info.modid, 0, 0xb830, 1,  io_item_thing_patched);
 			break;
 	}
 	return SCE_KERNEL_START_SUCCESS;
