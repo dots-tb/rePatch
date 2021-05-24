@@ -133,7 +133,7 @@ static int sceFiosKernelOverlayResolveSyncForDriver_patched(SceUID pid, int reso
 	ret = TAI_CONTINUE(int, ref_hooks[7], pid, resolveFlag, pInPath, pOutPath, maxPath);
 	sceSblACMgrGetProcessProgramAuthId(pid, &authid);
 	if(!sceSblACMgrIsSystemProgram(pid) || sceSblACMgrIsGameProgram(pid) || (authid == 0)) { // Damn. I just enabled most homebrew support with FIOS2
-		if(strstr(pOutPath, "ux0:/data")) {
+		if(strstr(pOutPath, "ux0:/data") && strlen(pOutPath) > 11) { // Basically works
 			stripReplaceData(pOutPath, data_patch);
 			ret = resolveFolder(data_patch);
 			if (ret)
@@ -149,7 +149,7 @@ static sceFiosKernelOverlayDHOpenSync_patched(int *handle, /** Gonna Write to it
 	SceUID pid = sceKernelGetProcessIdFromTLS();
 	sceSblACMgrGetProcessProgramAuthId(pid, &authid);
 	if(!sceSblACMgrIsSystemProgram(pid) || sceSblACMgrIsGameProgram(pid) || (authid == 0)) { // Yeah yeah. Enabled Homebrew support
-		if(strstr(path, "ux0:data") || strstr(path, "ux0:/data")) { // Absolute Jank
+		if((strstr(path, "ux0:data") && strlen(path) > 10) || (strstr(path, "ux0:/data") && strlen(path) > 11)) { // Absolute Jank
 			stripReplaceData(path, data_patch);
 			if (resolveFolder(data_patch))
 				strncpy(path, data_patch, PATH_MAX);
