@@ -1,26 +1,36 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.19)
 
-if(NOT DEFINED CMAKE_TOOLCHAIN_FILE)
-  if(DEFINED ENV{VITASDK})
-    set(CMAKE_TOOLCHAIN_FILE "$ENV{VITASDK}/share/vita.toolchain.cmake" CACHE PATH "toolchain file")
-  else()
-    message(FATAL_ERROR "Please define VITASDK to point to your SDK path!")
-  endif()
-endif()
+set(CMAKE_TOOLCHAIN_FILE "$ENV{SCE_PSP2_SDK_DIR}/host_tools/build/cmake/psp2-snc-toolchain.cmake")
 
-project(repatch)
-include("$ENV{VITASDK}/share/vita.cmake" REQUIRED)
+project(repatch_ex)
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wl,-q -Wall -O3 -std=gnu99")
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -nostdlib")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -fno-rtti -fno-exceptions")
+include(VitaDevelopmentSuite)
+enable_language(EMD)
+set(CMAKE_C_STANDARD 99)
 
-link_directories(
-	${CMAKE_CURRENT_BINARY_DIR}
+add_compile_options(
+  -Xdiag=0 -Xquit=2
 )
 
-add_executable(${PROJECT_NAME}
+add_link_options(
+  --prx-no-runtime-support
+  --strip-unused-data
+  --strip-duplicates
+  --strip-report=strip-report.txt
+)
+
+include_directories(
+  ${VDSUITE_KERNEL_INCLUDE_DIRECTORIES}
+  ${VDSUITE_STANDARD_INCLUDE_DIRECTORIES}
+)
+
+link_directories(
+  	${VDSUITE_LIBRARY_DIRECTORIES}
+)
+
+add_library(${PROJECT_NAME} MODULE
 	repatch.c
+	repatch_ex.emd
 )
 
 target_link_libraries(${PROJECT_NAME}
@@ -34,7 +44,5 @@ target_link_libraries(${PROJECT_NAME}
 	SceSysrootForKernel_stub
 	SceSblACMgrForDriver_stub
 )
-vita_create_self(${PROJECT_NAME}.skprx ${PROJECT_NAME}
-  UNSAFE
-  CONFIG ${CMAKE_SOURCE_DIR}/exports.yml
-)
+
+VDSuiteSignElf(${PROJECT_NAME}.skprx ${PROJECT_NAME} COMPRESS ON STRIP ON)

@@ -1,20 +1,20 @@
-/* 
+/*
 rePatch v3.0 reDux0 -- PATCHING WITH FREEDOM
 	Brought to you by SilicaTeam 2.0 --
-	
+
 		Dev and "reV ur engines" by @dots_tb @CelesteBlue123 (especially his """holy grail"""  and self_auth info)
-		
+
 	with support from @Nkekev @SilicaAndPina
 
 Testing team:
-    AlternativeZero	bopz
+	AlternativeZero	bopz
 	@IcySon55		DuckySushi
-	AnalogMan		Pingu (@mcdarkjedii) 
+	AnalogMan		Pingu (@mcdarkjedii)
 	amadeus			jeff7360
 	Radziu (@AluProductions)
 	@RealYoti		@froid_san
 	waterflame
-	
+
 Special thanks to:
 	VitaPiracy, especially Radziu for shilling it
 	The translation community for being supportive of rePatch and its development
@@ -22,8 +22,11 @@ Special thanks to:
 	TheFlow for creating a need for this plugin
 */
 
+#define PATH_MAX 1024
+
 #define rePatchFolder "rePatch"
 #define addcontFolder "reAddcont"
+#define dataFolder    "reData"
 
 //https://wiki.henkaku.xyz/vita/SceIofilemgr
 typedef struct io_scheduler_item //size is 0x14 - allocated from SceIoScheduler heap
@@ -58,7 +61,11 @@ typedef struct mount_point_overlay{
 #define DLC_PATH   0x02
 #define AIDS_PATH  0x04
 #define MANU_PATH  0x08
-#define APP_PATH  0x10
+#define APP_PATH   0x10
+
+#define UNSAFE     0x2F00000000000001ULL	// For later
+#define SAFE       0x2F00000000000002ULL
+#define SUPERSAFE  0x2F00000000000003ULL
 
 typedef struct SceSelfAuthInfo // size is 0x90
 {
@@ -88,6 +95,6 @@ typedef struct SceSblSmCommContext130 // size is 0x130 as its name indicates.
 	uint32_t unk_12C;
 } SceSblSmCommContext130;
 
-#define DEVICES_AMT 5
+#define DEVICES_AMT 6
 
-const char *DEVICES[DEVICES_AMT]= {"ux0:", "uma0:", "imc0:", "grw0:", "xmc0:"};
+const char *DEVICES[DEVICES_AMT]= {"ux0:", "uma0:", "imc0:", "grw0:", "xmc0:", "ur0:"};
